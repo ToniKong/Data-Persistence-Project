@@ -6,15 +6,19 @@ using UnityEngine.UI;
 
 public class MainManager : MonoBehaviour
 {
+    [SerializeField] private string playerName;
+
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text HighScoreText;
     public GameObject GameOverText;
+    public GameObject GameOverButton;
     
     private bool m_Started = false;
-    private int m_Points;
+    public int m_Points;
     
     private bool m_GameOver = false;
 
@@ -22,6 +26,14 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        playerName = SaveManager.instance.currentSavedName;
+        ScoreText.text = playerName + $"Score : {m_Points}";
+
+        if(SaveManager.instance.highScore > 0)
+        {
+            HighScoreText.text = SaveManager.instance.highScoreName + " High Score: " + SaveManager.instance.highScore;
+        }
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -57,6 +69,7 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                checkHighScore();
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
@@ -65,12 +78,27 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"{playerName} Score : {m_Points}";
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        GameOverButton.SetActive(true);
+    }
+
+    public void returnMainMenu()
+    {
+        checkHighScore();
+        SceneManager.LoadScene("menu");
+    }
+
+    void checkHighScore()
+    {
+        if(m_Points > SaveManager.instance.highScore)
+        {
+            SaveManager.instance.SaveHighScore(m_Points);
+        }
     }
 }
